@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Querys>
+    <Query>
+        <Name>default</Name>
+        <Statement>
+            select target_name, target_type, target_guid, metric_name, metric_column, COLLECTION_TIMESTAMP, value
+            from mgmt$metric_current
+            where target_name = ?
+            and metric_column IN
+        </Statement>
+        <InstancesFrom type="literal">TIPO</InstancesFrom>
+        <Result>
+            <ColumnMetricName>metric_column</ColumnMetricName>
+            <Column>
+                <Name>metric_column</Name>
+                <MetricName>rx</MetricName>
+            </Column>
+            <Column>
+                <Name>value</Name>
+                <MetricName>rc</MetricName>
+            </Column>
+        </Result>
+    </Query>
+    <Query>
+        <Name>def</Name>
+        <Statement>
+            select target_name, target_type, target_guid, metric_name, metric_column, COLLECTION_TIMESTAMP, value
+            from mgmt$metric_current
+            where target_name = ?
+            and metric_column IN
+        </Statement>
+        <InstancesFrom type="literal">TIPO</InstancesFrom>
+        <Result>
+            <ColumnMetricName>metric_column</ColumnMetricName>
+            <Column>
+                <Name>metric_column</Name>
+                <MetricName>rx</MetricName>
+            </Column>
+            <Column>
+                <Name>value</Name>
+                <MetricName>rc</MetricName>
+            </Column>
+        </Result>
+    </Query>
+</Querys>
