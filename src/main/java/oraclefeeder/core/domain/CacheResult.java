@@ -1,6 +1,5 @@
 package oraclefeeder.core.domain;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -10,7 +9,7 @@ public class CacheResult {
 
     private Integer id;
     private Integer totalRows;
-    private List<Map<String, String>> result;
+    private Map<String,Map<String, String>> result;
 
     public Integer getId() {
         return id;
@@ -28,11 +27,12 @@ public class CacheResult {
         this.totalRows = totalRows;
     }
 
-    public List<Map<String, String>> getResult() {
+    public Map<String,Map<String, String>> getResult() {
         return result;
     }
 
-    public void setResult(List<Map<String, String>> result) {
+    public void setResult(Map<String,Map<String, String>> result) {
         this.result = result;
     }
+
 }

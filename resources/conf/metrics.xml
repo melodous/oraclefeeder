@@ -14,97 +14,21 @@
                     <!--<ReloadFreq>3600</ReloadFreq>-->
                 <!--</MapPrefixSuffix>-->
                 <Statement cache="true" cacheTime="3780">
-                    select host_name, target_name, instance_name, database_name FROM MGMT$DB_DBNINSTANCEINFO
+                    select host_name, instance_name, database_name FROM MGMT$DB_DBNINSTANCEINFO
                 </Statement>
                 <InstancesFrom type="column">instance_name</InstancesFrom>
                 <Result>
                     <Column>
-                        <Name>target_name</Name>
+                        <Name>instance_name</Name>
                         <Type>parameter</Type>
                     </Column>
-<!--                    <Column>
+<!--                <Column>
                         <Name>host_name</Name>
                         <type>result</type>
                     </Column>-->
                 </Result>
                 <Querys>
                     <Query name="default">
-                        <Parameters>
-                            <!--type column/literal - default literal-->
-                            <Parameter type="column">target_name</Parameter>
-                            <Parameter>dbtime_ps</Parameter>
-                            <Parameter>response_time_pt</Parameter>
-                            <Parameter>cpu_time_pct</Parameter>
-                            <Parameter>redologalloc_hit_pct</Parameter>
-                            <Parameter>redosize_ps</Parameter>
-                            <Parameter>interconnect_rate</Parameter>
-                            <Parameter>Logons</Parameter>
-                            <Parameter>avg_active_sessions</Parameter>
-                            <Parameter>executions_ps</Parameter>
-                            <Parameter>executeswoparse_pct</Parameter>
-                            <Parameter>softparse_pct</Parameter>
-                            <Parameter>enqreqs_ps</Parameter>
-                            <Parameter>enqtimeouts_ps</Parameter>
-                            <Parameter>enqwaits_ps</Parameter>
-                            <Parameter>physreads_ps</Parameter>
-                            <Parameter>iorequests_ps</Parameter>
-                            <Parameter>iombs_ps</Parameter>
-                        </Parameters>
-                    </Query>
-
-                </Querys>
-            </IterateGroup>
-            <IterateGroup id="2">
-                <Prefix>basse</Prefix>
-                <!--<MapPrefixSuffix>-->
-                <!--<From>host_name</From>-->
-                <!--<File>/opt/orafeeder/hostname.map</File>-->
-                <!--<Map>true</Map>-->
-                <!--<ReloadFreq>3600</ReloadFreq>-->
-                <!--</MapPrefixSuffix>-->
-                <Statement cache="true" cacheTime="300">
-                    select host_name, target_name, instance_name, database_name FROM MGMT$DB_DBNINSTANCEINFO
-                </Statement>
-                <InstancesFrom type="column">instance_name</InstancesFrom>
-                <Result>
-                    <Column>
-                        <Name>target_name</Name>
-                        <Type>parameter</Type>
-                    </Column>
-                    <!--                    <Column>
-                                            <Name>host_name</Name>
-                                            <type>result</type>
-                                        </Column>-->
-                </Result>
-                <Querys>
-                    <Query name="def">
-                        <Parameters>
-                            <!--type column/literal - default literal-->
-                            <Parameter type="column">target_name</Parameter>
-                            <Parameter>dbtime_ps</Parameter>
-                            <Parameter>response_time_pt</Parameter>
-                            <Parameter>cpu_time_pct</Parameter>
-                            <Parameter>redologalloc_hit_pct</Parameter>
-                            <Parameter>redosize_ps</Parameter>
-                            <Parameter>interconnect_rate</Parameter>
-                            <Parameter>Logons</Parameter>
-                            <Parameter>avg_active_sessions</Parameter>
-                            <Parameter>executions_ps</Parameter>
-                            <Parameter>executeswoparse_pct</Parameter>
-                            <Parameter>softparse_pct</Parameter>
-                            <Parameter>enqreqs_ps</Parameter>
-                            <Parameter>enqtimeouts_ps</Parameter>
-                            <Parameter>enqwaits_ps</Parameter>
-                            <Parameter>physreads_ps</Parameter>
-                            <Parameter>iorequests_ps</Parameter>
-                            <Parameter>iombs_ps</Parameter>
-                        </Parameters>
-                    </Query>
-                </Querys>
-            </IterateGroup>
-            <IterateGroup id="3">
-                <Querys>
-                    <Query name="def">
                         <Parameters>
                             <!--type column/literal - default literal-->
                             <Parameter type="column">target_name</Parameter>

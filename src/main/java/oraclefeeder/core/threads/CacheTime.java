@@ -9,9 +9,12 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by Alberto Pascual on 21/08/15.
@@ -33,6 +36,9 @@ public class CacheTime implements Runnable {
     }
 
     public void run(){
+
+
+
         this.isRunning = true;
         Integer totalRows = 0;
         this.cacheResult = new LinkedList<CacheResult>();
@@ -44,14 +50,20 @@ public class CacheTime implements Runnable {
             Integer rows = 0;
             if(resultSet != null) {
                 try {
-                    List<Map<String,String>> allResults = new LinkedList<Map<String,String>>();
+                    Map<String, Map<String,String>> allResults = new LinkedHashMap<String, Map<String, String>>();
                     while(resultSet.next()) {
+                        Set<String> uniqueKey = new HashSet<String>();
                         Map<String, String> rowResult = new HashMap<String, String>();
                         for (Map.Entry<String, String> columns : metric.getColumns().entrySet()) {
                             rowResult.put(columns.getKey(), resultSet.getString(columns.getKey()));
                             rows++;
                         }
-                        allResults.add(rowResult);
+                        if(allResults.containsKey(resultSet.getString(metric.getInstanceFrom()) + resultSet.getString("host_name") + resultSet.getString("database_name"))) {
+                            System.out.println(resultSet.getString(metric.getInstanceFrom()) + " " + resultSet.getString("host_name") + " " + resultSet.getString("database_name"));
+                        } else {
+
+                        }
+                        allResults.put(resultSet.getString(metric.getInstanceFrom()) + resultSet.getString("host_name") + resultSet.getString("database_name"), rowResult);
                     }
                     cacheResult.setResult(allResults);
                 } catch (SQLException e) {
@@ -92,20 +104,20 @@ public class CacheTime implements Runnable {
             if(cacheResult != null){
                 Integer max = 0;
                 CacheResult cacheResultForThread;
-                List<Map<String, String>> result = new LinkedList<Map<String, String>>();
-                for(Map<String,String> listMapResult:cacheResult.getResult()){
+                Map<String,Map<String, String>> result = new HashMap<String, Map<String, String>>();
+                for(Map.Entry<String, Map<String,String>> listMapResult:cacheResult.getResult().entrySet()){
                     max++;
                     if(max%queryForThread == 0){
-                        result.add(listMapResult);
+                        result.put(listMapResult.getKey(), listMapResult.getValue());
                         cacheResultForThread = new CacheResult();
                         cacheResultForThread.setTotalRows(cacheResult.getTotalRows());
                         cacheResultForThread.setId(cacheResult.getId());
                         cacheResultForThread.setResult(result);
                         cacheResultList.add(cacheResultForThread);
 
-                        result = new LinkedList<Map<String, String>>();
+                        result =  new HashMap<String, Map<String, String>>();
                     } else {
-                        result.add(listMapResult);
+                        result.put(listMapResult.getKey(), listMapResult.getValue());
                     }
                 }
             }

@@ -66,7 +66,7 @@ public class ThreadManager implements Runnable {
     public void launchThreads(List<CacheResult> cacheResults) {
         ExecutorService executor = Executors.newFixedThreadPool(Integer.valueOf(Settings.propertie().getMaxThreads()));
         for(CacheResult cacheResult: cacheResults) {
-            Capturer capturer = new Capturer(cacheResults, this.metrics);
+            Capturer capturer = new Capturer(cacheResults, this.metrics, this.connection);
             Runnable worker = new MetricsCollector(capturer);
             executor.execute(worker);
         }
