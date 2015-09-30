@@ -3,6 +3,7 @@ package oraclefeeder.sender.graphite.sender;
 import oraclefeeder.core.logs.L4j;
 import oraclefeeder.sender.Sender;
 import oraclefeeder.sender.graphite.channel.Pipeline;
+import oraclefeeder.utils.constants.Constants;
 import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
@@ -49,7 +50,7 @@ public class GraphiteSender implements Sender {
         boolean haveProperties = true;
         this.graphiteProperties = new Properties();
         try {
-            this.graphiteProperties.load(new FileInputStream("path graphite in system"));
+            this.graphiteProperties.load(new FileInputStream(Constants.GRAPHITE_PROPS));
         } catch (IOException e) {
             haveProperties = false;
         }
@@ -61,14 +62,10 @@ public class GraphiteSender implements Sender {
 
     private void setDefaultProperties(){
         L4j.getL4j().info(DEFAULT_CONF);
-        this.graphiteProperties.setProperty("carbonHost", "localhost");
-        this.graphiteProperties.setProperty("port", "2045");
-        this.graphiteProperties.setProperty("reconnectTimeout","60");
-        this.graphiteProperties.setProperty("sendBufferSize", "1048576");
-        this.graphiteProperties.setProperty("hostPrefix", "pro.bbdd");
-        this.graphiteProperties.setProperty("metricUseHost", "true");
-        this.graphiteProperties.setProperty("hostSuffix", "wls");
-        this.graphiteProperties.setProperty("metricDefaultHost", "default_host");
+        this.graphiteProperties.setProperty("graphite_host", "localhost");
+        this.graphiteProperties.setProperty("graphite_port", "2045");
+        this.graphiteProperties.setProperty("graphite_reconnectTimeou","60");
+        this.graphiteProperties.setProperty("graphite_sendBufferSize", "1048576");
     }
 
     public void setDomainName(String domainName) {
@@ -81,25 +78,25 @@ public class GraphiteSender implements Sender {
         L4j.getL4j().info(GRAPHITE_INIT);
         int port, reconnectTimeout, sendBufferSize;
         try {
-            port = Integer.parseInt(this.graphiteProperties.getProperty("port"));
+            port = Integer.parseInt(this.graphiteProperties.getProperty("graphite_port"));
         } catch(NumberFormatException e){
             L4j.getL4j().warning(SET_PORT);
             port = 2003;
         }
         try {
-            reconnectTimeout = Integer.parseInt(this.graphiteProperties.getProperty("reconnectTimeout"));
+            reconnectTimeout = Integer.parseInt(this.graphiteProperties.getProperty("graphite_reconnectTimeou"));
         } catch(NumberFormatException e){
             L4j.getL4j().warning(SET_RECONNECT_TIMEOUT);
             reconnectTimeout = 60;
         }
         try {
-            sendBufferSize = Integer.parseInt(this.graphiteProperties.getProperty("sendBufferSize"));
+            sendBufferSize = Integer.parseInt(this.graphiteProperties.getProperty("graphite_sendBufferSize"));
         } catch(NumberFormatException e){
             L4j.getL4j().warning(SET_BUFFER_SIZE);
             sendBufferSize = 1048576;
         }
         try {
-            this.socketAddress = new InetSocketAddress(graphiteProperties.getProperty("carbonHost"), port);
+            this.socketAddress = new InetSocketAddress(graphiteProperties.getProperty("graphite_host"), port);
             this.channelFactory = new NioClientSocketChannelFactory(Executors.newCachedThreadPool(), Executors.newCachedThreadPool());
             this.clientBootstrap = new ClientBootstrap(channelFactory);
             this.pipeline = new Pipeline(this.clientBootstrap, new HashedWheelTimer(), reconnectTimeout);
@@ -143,13 +140,10 @@ public class GraphiteSender implements Sender {
         return isConnected;
     }
 
-    public void send(String host, String metrica) {
+    public void send(String metrica) {
         try {
-            String prefix = this.graphiteProperties.getProperty("hostPrefix");
-            String sufix = this.graphiteProperties.getProperty("hostSuffix");
-            String graphiteMetric = prefix + "." + host + "." + sufix + "." + metrica + "\n";
             Channel channel = pipeline.getCurrentPipeline().getChannel();
-            channel.write(graphiteMetric);
+            channel.write(metrica);
         } catch (Exception e) {
             e.printStackTrace();
         }

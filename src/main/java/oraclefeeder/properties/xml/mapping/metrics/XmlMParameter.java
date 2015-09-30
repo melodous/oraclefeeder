@@ -12,6 +12,7 @@ public class XmlMParameter {
 
     private String parameter;
     private String type;
+    private String argument;
 
     public String getParameter() {
         return parameter;
@@ -29,5 +30,14 @@ public class XmlMParameter {
     @XmlAttribute(name = "type")
     public void setType(String type) {
         this.type = type;
+    }
+
+    public String getArgument() {
+        return argument;
+    }
+
+    @XmlAttribute(name = "argument")
+    public void setArgument(String argument) {
+        this.argument = argument;
     }
 }

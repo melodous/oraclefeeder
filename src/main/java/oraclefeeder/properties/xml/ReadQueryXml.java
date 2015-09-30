@@ -9,6 +9,7 @@ import oraclefeeder.properties.xml.mapping.metrics.XmlMMetric;
 import oraclefeeder.properties.xml.mapping.metrics.XmlMMetrics;
 import oraclefeeder.properties.xml.mapping.metrics.XmlMParameter;
 import oraclefeeder.properties.xml.mapping.metrics.XmlMQuery;
+import oraclefeeder.properties.xml.mapping.querys.Parameter;
 import oraclefeeder.properties.xml.mapping.querys.XmlQColumn;
 import oraclefeeder.properties.xml.mapping.querys.XmlQQuery;
 import oraclefeeder.properties.xml.mapping.querys.XmlQQuerys;
@@ -72,13 +73,15 @@ public class ReadQueryXml {
                     int sizeStatus = querys.size();
                     for(XmlQQuerys xQQuerys: xmlQQuerys){
                         for(XmlQQuery xmlQQuery:xQQuerys.getXmlQQueries()){
-                            if(xmlMQuery.getName().equals(xmlQQuery.getName())){
+                            if(xmlMQuery.getId().equals(xmlQQuery.getId())){
                                 Query query = new Query();
-                                query.setName(xmlQQuery.getName());
+                                if(xmlMQuery.getName() != null) {
+                                    query.setName(xmlMQuery.getName());
+                                } else {
+                                    query.setName(xmlQQuery.getId());
+                                }
                                 parserStatement.setStatement(xmlQQuery.getStatement());
                                 query.setStatement(parserStatement.parser());
-                                query.setInstanceFrom(xmlQQuery.getInstanceFrom().getInstancesFrom());
-                                query.setInstanceFromType(xmlQQuery.getInstanceFrom().getType());
                                 Map<String,String> values = new HashMap<String, String>();
                                 for(XmlQResult xmlQResult:xmlQQuery.getXmlQResult()) {
                                     query.setColumnMetricName(xmlQResult.getColumnMetricName());
@@ -87,11 +90,15 @@ public class ReadQueryXml {
                                     }
                                     query.setValues(values);
                                 }
-                                Map<String,String> paramns = new HashMap<String, String>();
+                                List<Parameter> parameters = new LinkedList<Parameter>();
                                 for(XmlMParameter xmlMParameter:xmlMQuery.getXmlMParameters().getXmlMParameter()) {
-                                    paramns.put(xmlMParameter.getParameter(), xmlMParameter.getType());
+                                    Parameter parameter = new Parameter();
+                                    parameter.setType(xmlMParameter.getType());
+                                    parameter.setArgument(xmlMParameter.getArgument());
+                                    parameter.setValue(xmlMParameter.getParameter());
+                                    parameters.add(parameter);
                                 }
-                                query.setParamns(paramns);
+                                query.setParameters(parameters);
                                 querys.add(query);
                             }
                         }

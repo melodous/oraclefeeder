@@ -1,5 +1,8 @@
 package oraclefeeder.properties.xml.mapping;
 
+import oraclefeeder.properties.xml.mapping.querys.Parameter;
+
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -9,19 +12,17 @@ public class Query {
 
     private String name;
     private String statement;
-    private String instanceFrom;
-    private String instanceFromType;
     private Map<String, String> values; //map value can be null
     private String columnMetricName;
     //param/type
-    private Map<String, String> paramns;
+    private List<Parameter> Parameters;
 
-    public Map<String, String> getParamns() {
-        return paramns;
+    public List<Parameter> getParameters() {
+        return Parameters;
     }
 
-    public void setParamns(Map<String, String> paramns) {
-        this.paramns = paramns;
+    public void setParameters(List<Parameter> parameters) {
+        Parameters = parameters;
     }
 
     public String getName() {
@@ -38,22 +39,6 @@ public class Query {
 
     public void setStatement(String statement) {
         this.statement = statement;
-    }
-
-    public String getInstanceFrom() {
-        return instanceFrom;
-    }
-
-    public void setInstanceFrom(String instanceFrom) {
-        this.instanceFrom = instanceFrom;
-    }
-
-    public String getInstanceFromType() {
-        return instanceFromType;
-    }
-
-    public void setInstanceFromType(String instanceFromType) {
-        this.instanceFromType = instanceFromType;
     }
 
     public Map<String, String> getValues() {

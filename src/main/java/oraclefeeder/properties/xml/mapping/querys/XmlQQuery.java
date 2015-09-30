@@ -1,7 +1,5 @@
 package oraclefeeder.properties.xml.mapping.querys;
 
-import oraclefeeder.properties.xml.mapping.XmlInstancesFrom;
-
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.List;
@@ -11,18 +9,17 @@ import java.util.List;
  */
 @XmlRootElement(name="Query")
 public class XmlQQuery {
-    private String name;
+    private String id;
     private String statement;
-    private XmlInstancesFrom instanceFrom;
     private List<XmlQResult> xmlQResult;
 
-    public String getName() {
-        return name;
+    public String getId() {
+        return id;
     }
 
-    @XmlElement(name="Name", required = true)
-    public void setName(String name) {
-        this.name = name;
+    @XmlElement(name="id", required = true)
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getStatement() {
@@ -32,15 +29,6 @@ public class XmlQQuery {
     @XmlElement(name="Statement", required = true)
     public void setStatement(String statement) {
         this.statement = statement;
-    }
-
-    public XmlInstancesFrom getInstanceFrom() {
-        return instanceFrom;
-    }
-
-    @XmlElement(name="InstancesFrom", required = true)
-    public void setInstanceFrom(XmlInstancesFrom instanceFrom) {
-        this.instanceFrom = instanceFrom;
     }
 
     public List<XmlQResult> getXmlQResult() {

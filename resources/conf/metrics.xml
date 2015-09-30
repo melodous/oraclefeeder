@@ -6,49 +6,85 @@
         <!--</QueryFile>-->
         <IterateGroups>
             <IterateGroup id="1">
-                <Prefix>basse</Prefix>
+                <Prefix>prefijoIterate</Prefix>
                 <!--<MapPrefixSuffix>-->
                     <!--<From>host_name</From>-->
                     <!--<File>/opt/orafeeder/hostname.map</File>-->
                     <!--<Map>true</Map>-->
                     <!--<ReloadFreq>3600</ReloadFreq>-->
                 <!--</MapPrefixSuffix>-->
+                <!--cada iterategroup con cache añade un hilo al proceso-->
                 <Statement cache="true" cacheTime="3780">
-                    select host_name, instance_name, database_name FROM MGMT$DB_DBNINSTANCEINFO
+                    select target_name, host_name, instance_name, database_name FROM MGMT$DB_DBNINSTANCEINFO
                 </Statement>
-                <InstancesFrom type="column">instance_name</InstancesFrom>
+                <!--<InstancesFrom type="column">instance_name</InstancesFrom>-->
                 <Result>
                     <Column>
-                        <Name>instance_name</Name>
-                        <Type>parameter</Type>
+                        <Name>target_name</Name>
+                        <Type>key</Type>
                     </Column>
-<!--                <Column>
+                    <Column>
+                        <Name>instance_name</Name>
+                        <Type>InstancesFrom</Type>
+                    </Column>
+                    <Column>
                         <Name>host_name</Name>
-                        <type>result</type>
-                    </Column>-->
+                    </Column>
+                    <Column>
+                        <Name>database_name</Name>
+                    </Column>
                 </Result>
                 <Querys>
-                    <Query name="default">
+                    <!--<Query name="default">-->
+                        <!--<Parameters>-->
+                            <!--&lt;!&ndash;type column/literal - default literal&ndash;&gt;-->
+                            <!--<Parameter type="column">target_name</Parameter>-->
+                            <!--<Parameter argument="IN" group="rendimiento">dbtime_ps</Parameter>-->
+                            <!--<Parameter argument="IN">response_time_pt</Parameter>-->
+                            <!--<Parameter argument="IN">cpu_time_pct</Parameter>-->
+                            <!--<Parameter argument="IN">redologalloc_hit_pct</Parameter>-->
+                            <!--<Parameter argument="IN">redosize_ps</Parameter>-->
+                            <!--<Parameter argument="IN">interconnect_rate</Parameter>-->
+                            <!--<Parameter argument="IN">Logons</Parameter>-->
+                            <!--<Parameter argument="IN">avg_active_sessions</Parameter>-->
+                            <!--<Parameter argument="IN">executions_ps</Parameter>-->
+                            <!--<Parameter argument="IN">executeswoparse_pct</Parameter>-->
+                            <!--<Parameter argument="IN">softparse_pct</Parameter>-->
+                            <!--<Parameter argument="IN">enqreqs_ps</Parameter>-->
+                            <!--<Parameter argument="IN">enqtimeouts_ps</Parameter>-->
+                            <!--<Parameter argument="IN">enqwaits_ps</Parameter>-->
+                            <!--<Parameter argument="IN">physreads_ps</Parameter>-->
+                            <!--<Parameter argument="IN">iorequests_ps</Parameter>-->
+                            <!--<Parameter argument="IN">iombs_ps</Parameter>-->
+                        <!--</Parameters>-->
+                    <!--</Query>-->
+                    <Query id="default" name="uno">
                         <Parameters>
                             <!--type column/literal - default literal-->
                             <Parameter type="column">target_name</Parameter>
-                            <Parameter>dbtime_ps</Parameter>
-                            <Parameter>response_time_pt</Parameter>
-                            <Parameter>cpu_time_pct</Parameter>
-                            <Parameter>redologalloc_hit_pct</Parameter>
-                            <Parameter>redosize_ps</Parameter>
-                            <Parameter>interconnect_rate</Parameter>
-                            <Parameter>Logons</Parameter>
-                            <Parameter>avg_active_sessions</Parameter>
-                            <Parameter>executions_ps</Parameter>
-                            <Parameter>executeswoparse_pct</Parameter>
-                            <Parameter>softparse_pct</Parameter>
-                            <Parameter>enqreqs_ps</Parameter>
-                            <Parameter>enqtimeouts_ps</Parameter>
-                            <Parameter>enqwaits_ps</Parameter>
-                            <Parameter>physreads_ps</Parameter>
-                            <Parameter>iorequests_ps</Parameter>
-                            <Parameter>iombs_ps</Parameter>
+                            <Parameter argument="IN">dbtime_ps</Parameter>
+                            <Parameter argument="IN">response_time_pt</Parameter>
+                            <Parameter argument="IN">cpu_time_pct</Parameter>
+                            <Parameter argument="IN">redologalloc_hit_pct</Parameter>
+                            <Parameter argument="IN">redosize_ps</Parameter>
+                            <Parameter argument="IN">interconnect_rate</Parameter>
+                            <Parameter argument="IN">Logons</Parameter>
+                            <Parameter argument="IN">avg_active_sessions</Parameter>
+                        </Parameters>
+                    </Query>
+                    <Query id="default" name="dos">
+                        <Parameters>
+                            <!--type column/literal - default literal-->
+                            <Parameter type="column">target_name</Parameter>
+                            <Parameter argument="IN">executions_ps</Parameter>
+                            <Parameter argument="IN">executeswoparse_pct</Parameter>
+                            <Parameter argument="IN">softparse_pct</Parameter>
+                            <Parameter argument="IN">enqreqs_ps</Parameter>
+                            <Parameter argument="IN">enqtimeouts_ps</Parameter>
+                            <Parameter argument="IN">enqwaits_ps</Parameter>
+                            <Parameter argument="IN">physreads_ps</Parameter>
+                            <Parameter argument="IN">iorequests_ps</Parameter>
+                            <Parameter argument="IN">iombs_ps</Parameter>
                         </Parameters>
                     </Query>
                 </Querys>

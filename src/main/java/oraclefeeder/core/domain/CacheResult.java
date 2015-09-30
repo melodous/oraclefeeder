@@ -1,38 +1,29 @@
 package oraclefeeder.core.domain;
 
-import java.util.Map;
+import java.util.List;
 
 /**
- * Created by Alberto Pascual on 27/08/15.
+ * Created by Alberto Pascual on 21/09/15.
  */
 public class CacheResult {
 
-    private Integer id;
-    private Integer totalRows;
-    private Map<String,Map<String, String>> result;
+    private String instacesFrom;
+    private List<CacheColumn> cacheColumns;
 
-    public Integer getId() {
-        return id;
+    public String getInstacesFrom() {
+        return instacesFrom;
     }
 
-    public void setId(Integer id) {
-        this.id = id;
+    public void setInstacesFrom(String instacesFrom) {
+        this.instacesFrom = instacesFrom;
     }
 
-    public Integer getTotalRows() {
-        return totalRows;
+    public List<CacheColumn> getCacheColumns() {
+        return cacheColumns;
     }
 
-    public void setTotalRows(Integer totalRows) {
-        this.totalRows = totalRows;
-    }
-
-    public Map<String,Map<String, String>> getResult() {
-        return result;
-    }
-
-    public void setResult(Map<String,Map<String, String>> result) {
-        this.result = result;
+    public void setCacheColumns(List<CacheColumn> cacheColumns) {
+        this.cacheColumns = cacheColumns;
     }
 
 }

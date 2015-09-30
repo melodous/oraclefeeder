@@ -26,6 +26,7 @@ public class Settings {
     private String dbDriver;
     private String maxThreads;
     private String threadsIntervalSec;
+    private String graphitePrefix;
 
     private Settings(){}
 
@@ -34,6 +35,7 @@ public class Settings {
             instance = new Settings();
             instance.readBaseProperties();
             instance.readL4jProperties();
+            instance.readGrapbhiteProperties();
         }
         return instance;
     }
@@ -49,10 +51,6 @@ public class Settings {
             instance.setDbDatabase(confProperties.getProperty("db_database"));
             instance.setDbUser(confProperties.getProperty("db_user"));
             instance.setDbPassword(confProperties.getProperty("db_password"));
-            instance.setGraphiteHost(confProperties.getProperty("graphite_host"));
-            instance.setGraphitePort(confProperties.getProperty("graphite_port"));
-            instance.setGraphiteReconnectTimeout(confProperties.getProperty("graphite_reconnectTimeout"));
-            instance.setGraphiteSendBufferSize(confProperties.getProperty("graphite_sendBufferSize"));
             instance.setDbDriver(confProperties.getProperty("of_db_driver"));
             instance.setMaxThreads(confProperties.getProperty("of_use_maxthreads"));
             instance.setThreadsIntervalSec(confProperties.getProperty("of_interval_sec"));
@@ -62,6 +60,22 @@ public class Settings {
         }
     }
 
+    private static void readGrapbhiteProperties(){
+        FileInputStream fileProperties;
+        try {
+            fileProperties = new FileInputStream(Constants.GRAPHITE_PROPS);
+            Properties confProperties = new Properties();
+            confProperties.load(fileProperties);
+            instance.setGraphiteHost(confProperties.getProperty("graphite_host"));
+            instance.setGraphitePort(confProperties.getProperty("graphite_port"));
+            instance.setGraphiteReconnectTimeout(confProperties.getProperty("graphite_reconnectTimeout"));
+            instance.setGraphiteSendBufferSize(confProperties.getProperty("graphite_sendBufferSize"));
+            instance.setGraphitePrefix(confProperties.getProperty("graphite_metric_prefix"));
+            fileProperties.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     private static void readL4jProperties(){
         FileInputStream fileProperties;
@@ -214,5 +228,13 @@ public class Settings {
 
     public void setThreadsIntervalSec(String threadsIntervalSec) {
         this.threadsIntervalSec = threadsIntervalSec;
+    }
+
+    public String getGraphitePrefix() {
+        return graphitePrefix;
+    }
+
+    public void setGraphitePrefix(String graphitePrefix) {
+        this.graphitePrefix = graphitePrefix;
     }
 }

@@ -11,13 +11,15 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class XmlMQuery {
 
     private String name;
+    private String id;
     private XmlMParameters xmlMParameters;
 
-    @XmlAttribute(name="name")
+
     public String getName() {
         return name;
     }
 
+    @XmlAttribute(name="name")
     public void setName(String name) {
         this.name = name;
     }
@@ -29,5 +31,14 @@ public class XmlMQuery {
     @XmlElement(name="Parameters")
     public void setXmlMParameters(XmlMParameters xmlMParameters) {
         this.xmlMParameters = xmlMParameters;
+    }
+
+
+    public String getId() {
+        return id;
+    }
+    @XmlAttribute(name="id")
+    public void setId(String id) {
+        this.id = id;
     }
 }

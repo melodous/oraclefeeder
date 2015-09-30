@@ -1,14 +1,18 @@
 package oraclefeeder.core.statistics;
 
+import oraclefeeder.core.domain.CacheColumn;
+import oraclefeeder.core.domain.CacheIterateGroup;
 import oraclefeeder.core.domain.CacheResult;
+import oraclefeeder.core.domain.Statistic;
 import oraclefeeder.core.persistence.DynamicSelect;
+import oraclefeeder.properties.Settings;
 import oraclefeeder.properties.xml.mapping.Metric;
 import oraclefeeder.properties.xml.mapping.Query;
+import oraclefeeder.properties.xml.mapping.querys.Parameter;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -18,83 +22,78 @@ import java.util.Map;
  */
 public class Capturer {
 
-    private List<CacheResult> cacheResults;
+    private List<CacheIterateGroup> cacheIterateGroups;
     private List<Metric> metrics;
     private Connection connection;
 
 
-    public Capturer(List<CacheResult> cacheResults, List<Metric> metrics, Connection connection) {
-        this.cacheResults = cacheResults;
+    public Capturer(List<CacheIterateGroup> cacheIterateGroups, List<Metric> metrics, Connection connection) {
+        this.cacheIterateGroups = cacheIterateGroups;
         this.metrics = metrics;
         this.connection = connection;
     }
 
-    public void getMetrics(){
-
-        List<MetricCapturer> metricCapturers = new LinkedList<MetricCapturer>();
-
-        for(CacheResult cacheResult:this.cacheResults){
-            Metric metric = this.findMetricById(cacheResult.getId());
-            if(metric.getStatement() != null){
+    public List<Statistic> getMetrics(){
+        List<Statistic> statistics = new LinkedList<Statistic>();
+        for(CacheIterateGroup cacheIterateGroup: this.cacheIterateGroups){
+            Metric metric = this.findMetricById(cacheIterateGroup.getId());
+            if(metric != null){
                 List<Query> querys = metric.getQuery();
-                for(Query query:querys){
-                    List<String> arguments = new LinkedList<String>();
-                    List<String> parametersIN = new LinkedList<String>();
-                    Map<String,String> targeInstance = new HashMap<String, String>();
-                    for(Map.Entry<String,String> param:query.getParamns().entrySet()){
-                        if(param.getValue() != null && param.getValue().equals("column")){
-                            //System.out.println(param.getValue());
-                            Map.Entry<String, Map<String,String>> fristResult = cacheResult.getResult().entrySet().iterator().next();
-                            for(Map.Entry<String,String> result: fristResult.getValue().entrySet()){
-                                if(result.getKey().equals(param.getKey())) {
 
-                                    String value = result.getValue();
-                                    arguments.add(result.getValue());
-                                    targeInstance.put(value, fristResult.getKey());
+                List<String> arguments = new LinkedList<String>();
+                List<String> argumentsIN = new LinkedList<String>();
+                for(CacheResult cacheResult: cacheIterateGroup.getCacheResultList()){
+                    for(Query query:querys){
+                        arguments.clear();
+                        argumentsIN.clear();
+                        for(Parameter parameter:query.getParameters()){
+                            if((parameter.getType() == null || parameter.getType().equals("literal"))&& parameter.getArgument().equals("IN")){
+                                argumentsIN.add(parameter.getValue());
+                            }
+                            if((parameter.getType() != null && parameter.getType().equals("column"))) {
+                                for(CacheColumn cacheColumn:cacheResult.getCacheColumns()) {
+                                    if (parameter.getValue().equals(cacheColumn.getName())) {
+                                        arguments.add(cacheColumn.getValue());
+                                    }
                                 }
                             }
-                            cacheResult.getResult().remove(fristResult.getKey());
-//                            Map<String, String> para = cacheResult.getResult().get(0);
-//                            for(Map.Entry<String,String> result: para.entrySet()){
-//                                if(result.getKey().equals(param.getKey())) {
-//                                    arguments.add(result.getValue());
-//                                }
-//                            }
-                        } else {
-                            parametersIN.add(param.getKey());
                         }
+                        DynamicSelect dynamicSelect = new DynamicSelect(this.connection);
+                        dynamicSelect.preparedStatement(query.getStatement(), arguments, argumentsIN);
+                        ResultSet queryResultSet = dynamicSelect.executeQuery();
+                        statistics.addAll(this.getAllMetrics(queryResultSet, query, cacheResult, cacheIterateGroup));
+                        dynamicSelect.close();
+
                     }
-                    //System.out.println(arguments.get(0));
-                    DynamicSelect dynamicSelect = new DynamicSelect(this.connection);
-                    dynamicSelect.preparedStatement(query.getStatement(), arguments, parametersIN);
-                    ResultSet resultSet = dynamicSelect.executeQuery();
-                    try {
-                        while(resultSet.next()) {
-                            MetricCapturer metricCapturer = new MetricCapturer();
-                            metricCapturer.setPrefix(metric.getPrefix());
-                            if(metric.getInstanceFromType().equals("column")) {
-                                //System.out.println(metric.getInstanceFrom());
-                                //metricCapturer.setMetricInstanceForm(resultSet.getString(metric.getInstanceFrom()));
-                            } else {
-                                //TODO
-                            }
-                            String t = targeInstance.get(resultSet.getString("target_name"));
-
-                            metricCapturer.setMetricInstanceForm("");
-                            metricCapturer.setMetricName(resultSet.getString("metric_column"));
-                            metricCapturer.setValue(resultSet.getString("value"));
-                            metricCapturers.add(metricCapturer);
-                        }
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                    }
-
-                    dynamicSelect.close();
-
                 }
             }
-       }
+        }
+        return statistics;
+    }
 
+    public List<Statistic> getAllMetrics(ResultSet resultSet, Query query, CacheResult cacheResult, CacheIterateGroup cacheIterateGroup){
+        List<Statistic> metrics = new LinkedList<Statistic>();
+        try {
+            while(resultSet.next()){
+                Statistic metric = new Statistic();
+                for(Map.Entry<String, String> values:query.getValues().entrySet())  {
+                    if("value".equals(values.getKey())){
+                        metric.setValue(resultSet.getString(values.getKey()));
+                    }
+                }
+                metric.setConfigPrefix(Settings.propertie().getGraphitePrefix());
+                metric.setPrefixMetricGroup(cacheIterateGroup.getPrefix());
+                metric.setQueryName(query.getName());
+                metric.setInstanceName(cacheResult.getInstacesFrom());
+                metric.setMetricName(resultSet.getString(query.getColumnMetricName()));
+                metric.setTimesTamp(System.currentTimeMillis() / 1000L);
+                metrics.add(metric);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return metrics;
     }
 
 

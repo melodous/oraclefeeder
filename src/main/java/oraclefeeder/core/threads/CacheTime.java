@@ -1,20 +1,21 @@
 package oraclefeeder.core.threads;
 
+import oraclefeeder.core.domain.CacheColumn;
+import oraclefeeder.core.domain.CacheIterateGroup;
 import oraclefeeder.core.domain.CacheResult;
+import oraclefeeder.core.domain.ThreadCacheResult;
 import oraclefeeder.core.persistence.StaticSelect;
 import oraclefeeder.properties.Settings;
 import oraclefeeder.properties.xml.mapping.Metric;
+import oraclefeeder.utils.Utils;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Created by Alberto Pascual on 21/08/15.
@@ -22,13 +23,14 @@ import java.util.Set;
 public class CacheTime implements Runnable {
 
     private Map<Integer,Metric> metrics;
-    private List<CacheResult> cacheResult;
     private Connection connection;
-    private Boolean isRunning;
+    private ThreadCacheResult threadCacheResult;
+    private Boolean test;
 
-    public CacheTime(Connection connection) {
+    public CacheTime(Connection connection, ThreadCacheResult threadCacheResult) {
         this.metrics = new HashMap<Integer, Metric>();
         this.connection = connection;
+        this.threadCacheResult = threadCacheResult;
     }
 
     public void put(Integer id, Metric metric){
@@ -36,101 +38,146 @@ public class CacheTime implements Runnable {
     }
 
     public void run(){
+        this.test = true;
+        this.threadCacheResult.isRunning(true);
+        Long intervalSec = Long.valueOf(Settings.propertie().getThreadsIntervalSec());
+        Long intervalMili = intervalSec * 1000;
+        Boolean start = true;
 
+        while(start){
 
+            this.threadCacheResult.getCacheIterateGroups().clear();
+            CacheIterateGroup cacheIterateGroup;
 
-        this.isRunning = true;
-        Integer totalRows = 0;
-        this.cacheResult = new LinkedList<CacheResult>();
-        for(Map.Entry<Integer,Metric> metricMap:this.metrics.entrySet()){
-            CacheResult cacheResult = new CacheResult();
-            Metric metric = metricMap.getValue();
-            StaticSelect staticSelect = new StaticSelect(this.connection);
-            ResultSet resultSet = staticSelect.executeQuery(metric.getStatement());
-            Integer rows = 0;
-            if(resultSet != null) {
-                try {
-                    Map<String, Map<String,String>> allResults = new LinkedHashMap<String, Map<String, String>>();
-                    while(resultSet.next()) {
-                        Set<String> uniqueKey = new HashSet<String>();
-                        Map<String, String> rowResult = new HashMap<String, String>();
-                        for (Map.Entry<String, String> columns : metric.getColumns().entrySet()) {
-                            rowResult.put(columns.getKey(), resultSet.getString(columns.getKey()));
-                            rows++;
-                        }
-                        if(allResults.containsKey(resultSet.getString(metric.getInstanceFrom()) + resultSet.getString("host_name") + resultSet.getString("database_name"))) {
-                            System.out.println(resultSet.getString(metric.getInstanceFrom()) + " " + resultSet.getString("host_name") + " " + resultSet.getString("database_name"));
-                        } else {
+            for(Map.Entry<Integer,Metric> metricMap:this.metrics.entrySet()){
+                Metric metric = metricMap.getValue();
+                cacheIterateGroup = new CacheIterateGroup();
+                Boolean isInstanceFromInConf = false;
+                cacheIterateGroup.setId(metric.getId());
+                cacheIterateGroup.setPrefix(metric.getPrefix());
 
-                        }
-                        allResults.put(resultSet.getString(metric.getInstanceFrom()) + resultSet.getString("host_name") + resultSet.getString("database_name"), rowResult);
-                    }
-                    cacheResult.setResult(allResults);
-                } catch (SQLException e) {
-                    e.printStackTrace();
+                if(metric.getInstanceFrom() != null) {
+                    isInstanceFromInConf = true;
                 }
-            } else {
-                //Error
+                StaticSelect staticSelect = new StaticSelect(this.connection);
+                ResultSet resultSet = staticSelect.executeQuery(metric.getStatement());
+                if(resultSet != null) {
+                    if(resultSet != null) {
+                        try {
+                            int auxKey = 0;
+                            while(resultSet.next()){
+                                CacheResult cacheResult = new CacheResult();
+                                String key = null;
+                                String instanceFrom = null;
+                                List<CacheColumn> cacheColumns = new LinkedList<CacheColumn>();
+                                for (Map.Entry<String, String> columns : metric.getColumns().entrySet()) {
+                                    CacheColumn cacheColumn = new CacheColumn(columns.getKey(), resultSet.getString(columns.getKey()));
+                                    if(columns.getValue() != null) {
+                                        String type = columns.getValue().toUpperCase();
+                                        if(type.equals("KEY")) {
+                                            key = resultSet.getString(columns.getKey());
+                                        } else if(type.equals("INSTANCESFROM") && !isInstanceFromInConf) {
+                                            instanceFrom = resultSet.getString(columns.getKey());
+                                        }
+                                    }
+                                    cacheColumns.add(cacheColumn);
+                                }
+                                if(isInstanceFromInConf){
+                                    cacheResult.setInstacesFrom(metric.getInstanceFrom());
+                                } else {
+                                    cacheResult.setInstacesFrom(instanceFrom);
+                                }
+                                cacheResult.setCacheColumns(cacheColumns);
+                                if(key != null) {
+                                    cacheIterateGroup.getCacheResult().put(key, cacheResult);
+                                } else {
+                                    cacheIterateGroup.getCacheResult().put(String.valueOf(auxKey), cacheResult);
+                                }
+                            }
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        //Error
+                    }
+                    cacheIterateGroup.setTotalQuerys(cacheIterateGroup.getCacheResult().size());
+                    cacheIterateGroup.convertMapToList();
+                    this.threadCacheResult.add(cacheIterateGroup);
+                    staticSelect.close();
+                }
             }
-            totalRows = totalRows + rows * metricMap.getValue().getQuery().size();
-            cacheResult.setId(metric.getId());
-            cacheResult.setTotalRows(totalRows);
-            totalRows = 0;
-            this.cacheResult.add(cacheResult);
-            staticSelect.close();
+            try {
+                this.test = false;
+                this.threadCacheResult.isRunning(false);
+                Thread.sleep(300000L);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
-        this.isRunning = false;
     }
 
-    public List<CacheResult> allocateQuerys(List<Metric> metrics, Integer totalStaticQuerys){
+    public Map<Integer,List<CacheIterateGroup>> allocateQuerys(List<Metric> metrics, Integer totalStaticQuerys){
 
         Integer maxThreads =  Integer.valueOf(Settings.propertie().getMaxThreads());
-        Integer querysCount = 0;
 
-        Map<Integer,CacheResult> mapResult = new HashMap<Integer, CacheResult>();
-        for(CacheResult cacheResult:this.cacheResult){
-            querysCount = querysCount + cacheResult.getTotalRows();
-            mapResult.put(cacheResult.getId(), cacheResult);
-        }
+        List<Integer> totalQuerysForThread = Utils.calculateQuerysForThreadReal(this.threadCacheResult, metrics, maxThreads);
 
-        querysCount = querysCount + totalStaticQuerys;
-        Integer queryForThread = querysCount / maxThreads;
-        Integer rest = querysCount % maxThreads;
+        Map<Integer,List<CacheIterateGroup>> allocate = new HashMap<Integer, List<CacheIterateGroup>>();
+        List<CacheIterateGroup> cacheIterateGroups = new LinkedList<CacheIterateGroup>();
+        int threadId = 0
 
-        List<CacheResult> cacheResultList = new LinkedList<CacheResult>();
-        for(Metric metric:metrics){
-            CacheResult cacheResult = mapResult.get(metric.getId());
+                ;
+        Boolean join = false;
+        for (CacheIterateGroup cacheIterateGroup : this.threadCacheResult.getCacheIterateGroups()) {
+            List<Integer> auxTotalQuerys = new LinkedList<Integer>();
+            for(Integer totalQuery: totalQuerysForThread) {
+                List<CacheResult> cacheResults;
+                if(totalQuery <= cacheIterateGroup.getCacheResultList().size()){
+                    cacheResults = new LinkedList<CacheResult>(cacheIterateGroup.getCacheResultList().subList(0,totalQuery));
+                    cacheIterateGroup.getCacheResultList().removeAll(cacheResults);
 
-            if(cacheResult != null){
-                Integer max = 0;
-                CacheResult cacheResultForThread;
-                Map<String,Map<String, String>> result = new HashMap<String, Map<String, String>>();
-                for(Map.Entry<String, Map<String,String>> listMapResult:cacheResult.getResult().entrySet()){
-                    max++;
-                    if(max%queryForThread == 0){
-                        result.put(listMapResult.getKey(), listMapResult.getValue());
-                        cacheResultForThread = new CacheResult();
-                        cacheResultForThread.setTotalRows(cacheResult.getTotalRows());
-                        cacheResultForThread.setId(cacheResult.getId());
-                        cacheResultForThread.setResult(result);
-                        cacheResultList.add(cacheResultForThread);
-
-                        result =  new HashMap<String, Map<String, String>>();
+                    CacheIterateGroup cacheIterateGroupAux = new CacheIterateGroup();
+                    cacheIterateGroupAux.setId(cacheIterateGroup.getId());
+                    cacheIterateGroupAux.setTotalQuerys(cacheIterateGroup.getTotalQuerys());
+                    cacheIterateGroupAux.setPrefix(cacheIterateGroup.getPrefix());
+                    cacheIterateGroupAux.setCacheResultList(cacheResults);
+                    if(join) {
+                        List<CacheIterateGroup> aux2 = allocate.get(threadId-1);
+                        aux2.add(cacheIterateGroupAux);
+                        join = false;
                     } else {
-                        result.put(listMapResult.getKey(), listMapResult.getValue());
+                        List<CacheIterateGroup> aux = new LinkedList<CacheIterateGroup>();
+                        aux.add(cacheIterateGroupAux);
+                        allocate.put(threadId++, aux);
+                        //System.out.println(cacheResults.size() + " - " + totalQuery);
                     }
+
+                } else if (totalQuery < cacheIterateGroup.getCacheResult().size() && cacheIterateGroup.getCacheResult().size() != 0) {
+                    cacheResults = new LinkedList<CacheResult>(cacheIterateGroup.getCacheResultList());
+                    cacheIterateGroup.getCacheResultList().removeAll(cacheResults);
+                    auxTotalQuerys.add(totalQuery - cacheResults.size());
+                    if(cacheResults.size() != 0) {
+                        CacheIterateGroup cacheIterateGroupAux = new CacheIterateGroup();
+                        cacheIterateGroupAux.setId(cacheIterateGroup.getId());
+                        cacheIterateGroupAux.setTotalQuerys(cacheIterateGroup.getTotalQuerys());
+                        cacheIterateGroupAux.setPrefix(cacheIterateGroup.getPrefix());
+                        cacheIterateGroupAux.setCacheResultList(cacheResults);
+
+                        List<CacheIterateGroup> aux = new LinkedList<CacheIterateGroup>();
+                        aux.add(cacheIterateGroupAux);
+                        allocate.put(threadId++, aux);
+                        join = true;;
+                    }
+                } else {
+                    auxTotalQuerys.add(totalQuery);
                 }
             }
+
+            totalQuerysForThread.clear();
+            totalQuerysForThread.addAll(auxTotalQuerys);
         }
-        return cacheResultList;
-    }
 
-    public List<CacheResult> getCacheResult() {
-        return cacheResult;
-    }
-
-    public Boolean isRunning() {
-        return isRunning;
+       return allocate;
     }
 
 }
