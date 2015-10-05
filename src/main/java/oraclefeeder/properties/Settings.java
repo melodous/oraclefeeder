@@ -25,7 +25,9 @@ public class Settings {
     private String graphiteSendBufferSize;
     private String dbDriver;
     private String maxThreads;
-    private String threadsIntervalSec;
+    private Long threadsIntervalSec;
+    private Long cacheIntervalSec;
+    private Long reconnectTimeoutDB;
     private String graphitePrefix;
 
     private Settings(){}
@@ -53,7 +55,9 @@ public class Settings {
             instance.setDbPassword(confProperties.getProperty("db_password"));
             instance.setDbDriver(confProperties.getProperty("of_db_driver"));
             instance.setMaxThreads(confProperties.getProperty("of_use_maxthreads"));
-            instance.setThreadsIntervalSec(confProperties.getProperty("of_interval_sec"));
+            instance.setThreadsIntervalSec(Long.valueOf(confProperties.getProperty("of_interval_sec")) * 1000l);
+            instance.setCacheIntervalSec(Long.valueOf(confProperties.getProperty("of_interval_cache_sec")) * 1000l);
+            instance.setReconnectTimeoutDB(Long.valueOf(confProperties.getProperty("db_reconnectTimeout")) * 1000l);
             fileProperties.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -222,11 +226,11 @@ public class Settings {
         this.maxThreads = maxThreads;
     }
 
-    public String getThreadsIntervalSec() {
+    public Long getThreadsIntervalSec() {
         return threadsIntervalSec;
     }
 
-    public void setThreadsIntervalSec(String threadsIntervalSec) {
+    public void setThreadsIntervalSec(Long threadsIntervalSec) {
         this.threadsIntervalSec = threadsIntervalSec;
     }
 
@@ -236,5 +240,21 @@ public class Settings {
 
     public void setGraphitePrefix(String graphitePrefix) {
         this.graphitePrefix = graphitePrefix;
+    }
+
+    public Long getCacheIntervalSec() {
+        return cacheIntervalSec;
+    }
+
+    public void setCacheIntervalSec(Long cacheIntervalSec) {
+        this.cacheIntervalSec = cacheIntervalSec;
+    }
+
+    public Long getReconnectTimeoutDB() {
+        return reconnectTimeoutDB;
+    }
+
+    public void setReconnectTimeoutDB(Long reconnectTimeoutDB) {
+        this.reconnectTimeoutDB = reconnectTimeoutDB;
     }
 }

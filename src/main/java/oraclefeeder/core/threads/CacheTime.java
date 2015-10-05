@@ -4,14 +4,17 @@ import oraclefeeder.core.domain.CacheColumn;
 import oraclefeeder.core.domain.CacheIterateGroup;
 import oraclefeeder.core.domain.CacheResult;
 import oraclefeeder.core.domain.ThreadCacheResult;
+import oraclefeeder.core.logs.L4j;
 import oraclefeeder.core.persistence.StaticSelect;
 import oraclefeeder.properties.Settings;
 import oraclefeeder.properties.xml.mapping.Metric;
+import oraclefeeder.sender.Sender;
 import oraclefeeder.utils.Utils;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -26,11 +29,13 @@ public class CacheTime implements Runnable {
     private Connection connection;
     private ThreadCacheResult threadCacheResult;
     private Boolean test;
+    private Sender sender;
 
-    public CacheTime(Connection connection, ThreadCacheResult threadCacheResult) {
+    public CacheTime(Connection connection, ThreadCacheResult threadCacheResult, Sender sender) {
         this.metrics = new HashMap<Integer, Metric>();
         this.connection = connection;
         this.threadCacheResult = threadCacheResult;
+        this.sender = sender;
     }
 
     public void put(Integer id, Metric metric){
@@ -40,12 +45,11 @@ public class CacheTime implements Runnable {
     public void run(){
         this.test = true;
         this.threadCacheResult.isRunning(true);
-        Long intervalSec = Long.valueOf(Settings.propertie().getThreadsIntervalSec());
-        Long intervalMili = intervalSec * 1000;
         Boolean start = true;
 
         while(start){
-
+            L4j.getL4j().info("Get CacheResult - Caching... ");
+            long start_time=System.currentTimeMillis();
             this.threadCacheResult.getCacheIterateGroups().clear();
             CacheIterateGroup cacheIterateGroup;
 
@@ -109,32 +113,32 @@ public class CacheTime implements Runnable {
             try {
                 this.test = false;
                 this.threadCacheResult.isRunning(false);
-                Thread.sleep(300000L);
+                long cacheIn = (System.currentTimeMillis() - start_time);
+                this.sender.send(Settings.propertie().getGraphitePrefix() + ".of_stats..metrics.cache.0.retrieve_time " + cacheIn + " " + System.currentTimeMillis() / 1000L + "\n");
+                Thread.sleep(Settings.propertie().getCacheIntervalSec());
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
     }
 
-    public Map<Integer,List<CacheIterateGroup>> allocateQuerys(List<Metric> metrics, Integer totalStaticQuerys){
+    public Map<Integer,List<CacheIterateGroup>> allocateQuerys(List<Metric> metrics){
 
         Integer maxThreads =  Integer.valueOf(Settings.propertie().getMaxThreads());
 
         List<Integer> totalQuerysForThread = Utils.calculateQuerysForThreadReal(this.threadCacheResult, metrics, maxThreads);
 
         Map<Integer,List<CacheIterateGroup>> allocate = new HashMap<Integer, List<CacheIterateGroup>>();
-        List<CacheIterateGroup> cacheIterateGroups = new LinkedList<CacheIterateGroup>();
-        int threadId = 0
-
-                ;
+        int threadId = 0;
         Boolean join = false;
         for (CacheIterateGroup cacheIterateGroup : this.threadCacheResult.getCacheIterateGroups()) {
             List<Integer> auxTotalQuerys = new LinkedList<Integer>();
+            List<CacheResult> auxCacheResult = new ArrayList<CacheResult>(cacheIterateGroup.getCacheResultList());
             for(Integer totalQuery: totalQuerysForThread) {
                 List<CacheResult> cacheResults;
-                if(totalQuery <= cacheIterateGroup.getCacheResultList().size()){
-                    cacheResults = new LinkedList<CacheResult>(cacheIterateGroup.getCacheResultList().subList(0,totalQuery));
-                    cacheIterateGroup.getCacheResultList().removeAll(cacheResults);
+                if(totalQuery <= auxCacheResult.size()){
+                    cacheResults = new LinkedList<CacheResult>(auxCacheResult.subList(0, totalQuery));
+                    auxCacheResult.removeAll(cacheResults);
 
                     CacheIterateGroup cacheIterateGroupAux = new CacheIterateGroup();
                     cacheIterateGroupAux.setId(cacheIterateGroup.getId());
@@ -153,8 +157,8 @@ public class CacheTime implements Runnable {
                     }
 
                 } else if (totalQuery < cacheIterateGroup.getCacheResult().size() && cacheIterateGroup.getCacheResult().size() != 0) {
-                    cacheResults = new LinkedList<CacheResult>(cacheIterateGroup.getCacheResultList());
-                    cacheIterateGroup.getCacheResultList().removeAll(cacheResults);
+                    cacheResults = new LinkedList<CacheResult>(auxCacheResult);
+                    auxCacheResult.removeAll(cacheResults);
                     auxTotalQuerys.add(totalQuery - cacheResults.size());
                     if(cacheResults.size() != 0) {
                         CacheIterateGroup cacheIterateGroupAux = new CacheIterateGroup();

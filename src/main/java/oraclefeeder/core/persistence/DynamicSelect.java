@@ -42,7 +42,12 @@ public class DynamicSelect {
         ResultSet rs = null;
         if(isPrepared) {
             try {
+//                long start_time=System.currentTimeMillis();
                 rs = this.preparedStatement.executeQuery();
+//                long serverIn = (System.currentTimeMillis() - start_time);
+//                if(serverIn > 200) {
+//                    System.out.println(serverIn);
+//                }
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -58,7 +63,7 @@ public class DynamicSelect {
         }
     }
 
-    public void coonectionClose() {
+    public void conectionClose() {
         try {
             this.connection.close();
         } catch (SQLException e) {
