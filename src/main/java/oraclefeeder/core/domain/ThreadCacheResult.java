@@ -2,9 +2,6 @@ package oraclefeeder.core.domain;
 
 import java.util.List;
 
-/**
- * Created by Alberto Pascual on 18/09/15.
- */
 public class ThreadCacheResult {
 
     private Boolean isRunning;

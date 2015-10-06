@@ -12,9 +12,6 @@ import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.ThreadMXBean;
 
-/**
- * Created by Alberto Pascual on 5/10/15.
- */
 public class OfStats implements Runnable {
 
     private Sender sender;

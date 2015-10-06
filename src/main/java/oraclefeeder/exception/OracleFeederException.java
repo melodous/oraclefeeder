@@ -2,9 +2,6 @@ package oraclefeeder.exception;
 
 import oraclefeeder.core.logs.L4j;
 
-/**
- * Created by Alberto Pascual on 12/08/15.
- */
 public class OracleFeederException extends Exception {
 
     private static final long serialVersionUID = 1;

@@ -1,8 +1,5 @@
 package oraclefeeder.utils.constants;
 
-/**
- * Created by Alberto Pascual Corpas on 04/08/15.
- */
 public class Constants {
 
     public static final String ORACLEFEEDER_PROPS = "resources/conf/oracleFeeder.properties";

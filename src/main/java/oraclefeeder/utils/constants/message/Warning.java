@@ -1,8 +1,5 @@
 package oraclefeeder.utils.constants.message;
 
-/**
- * Created by Alberto Pascual on 22/06/15.
- */
 public class Warning {
 
     public static final String DISCONNECT_FROM = "Disconnected from: ";

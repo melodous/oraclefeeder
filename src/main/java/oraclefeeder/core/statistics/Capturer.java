@@ -17,9 +17,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by Alberto Pascual on 24/08/15.
- */
 public class Capturer {
 
     private List<CacheIterateGroup> cacheIterateGroups;
@@ -101,7 +98,7 @@ public class Capturer {
     public Metric findMetricById(Integer id){
         Metric metricFound = null;
         for(Metric metric: this.metrics){
-            if(id == metric.getId()){
+            if(id.equals(metric.getId())){
                 metricFound = metric;
             }
         }

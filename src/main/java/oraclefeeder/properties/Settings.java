@@ -29,15 +29,18 @@ public class Settings {
     private Long cacheIntervalSec;
     private Long reconnectTimeoutDB;
     private String graphitePrefix;
+    private String metricSeparator;
+    private Boolean showQueriesInterval;
+    private Long intervalQueriesFilter;
 
     private Settings(){}
 
     public static synchronized Settings propertie(){
         if(instance == null) {
             instance = new Settings();
-            instance.readBaseProperties();
-            instance.readL4jProperties();
-            instance.readGrapbhiteProperties();
+            readBaseProperties();
+            readL4jProperties();
+            readGrapbhiteProperties();
         }
         return instance;
     }
@@ -58,6 +61,9 @@ public class Settings {
             instance.setThreadsIntervalSec(Long.valueOf(confProperties.getProperty("of_interval_sec")) * 1000l);
             instance.setCacheIntervalSec(Long.valueOf(confProperties.getProperty("of_interval_cache_sec")) * 1000l);
             instance.setReconnectTimeoutDB(Long.valueOf(confProperties.getProperty("db_reconnectTimeout")) * 1000l);
+            instance.setMetricSeparator(confProperties.getProperty("of_metric_separator"));
+            instance.setShowQueriesInterval(Boolean.valueOf(confProperties.getProperty("of_show_queries_interval_info")));
+            instance.setIntervalQueriesFilter(Long.valueOf(confProperties.getProperty("of_show_queries_interval_over_sec")));
             fileProperties.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -256,5 +262,29 @@ public class Settings {
 
     public void setReconnectTimeoutDB(Long reconnectTimeoutDB) {
         this.reconnectTimeoutDB = reconnectTimeoutDB;
+    }
+
+    public String getMetricSeparator() {
+        return metricSeparator;
+    }
+
+    public void setMetricSeparator(String metricSeparator) {
+        this.metricSeparator = metricSeparator;
+    }
+
+    public Boolean getShowQueriesInterval() {
+        return showQueriesInterval;
+    }
+
+    public void setShowQueriesInterval(Boolean showQueriesInterval) {
+        this.showQueriesInterval = showQueriesInterval;
+    }
+
+    public Long getIntervalQueriesFilter() {
+        return intervalQueriesFilter;
+    }
+
+    public void setIntervalQueriesFilter(Long intervalQueriesFilter) {
+        this.intervalQueriesFilter = intervalQueriesFilter;
     }
 }

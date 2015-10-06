@@ -36,10 +36,8 @@ public class ThreadManager implements Runnable {
         this.metrics = metrics;
         this.connection = connection;
         this.sender = this.getSender();
-        //Setting metric in cacheTime and id
         this.cacheTime = this.readMetrics();
         OfStats ofStats = new OfStats(this.sender);
-        //Start cacheTime
         new Thread(this.cacheTime, "CacheTime").start();
         new Thread(ofStats, "OfStats").start();
     }

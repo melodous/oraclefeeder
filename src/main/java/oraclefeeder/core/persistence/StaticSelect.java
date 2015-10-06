@@ -25,27 +25,9 @@ public class StaticSelect {
         return resultSet;
     }
 
-
-    public boolean isConnectionClosed() {
-        try {
-            return this.connection.isClosed();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return true;
-    }
-
     public void close() {
         try {
             this.preparedStatement.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void conectionClose() {
-        try {
-            this.connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }

@@ -1,8 +1,5 @@
 package oraclefeeder.utils;
 
-/**
- * Created by Alberto Pascual on 17/08/15.
- */
 public class ParserStatement {
 
     private String statement;

@@ -12,9 +12,6 @@ import java.io.File;
 import java.sql.SQLException;
 import java.util.List;
 
-/**
- * Created by Alberto Pascual Corpas on 03/08/15.
- */
 public class OracleFeeder {
     public static void main(String[] args) throws SQLException, JAXBException, OracleFeederException {
         File f = new File(".");

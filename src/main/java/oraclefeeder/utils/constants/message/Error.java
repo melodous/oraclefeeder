@@ -1,8 +1,5 @@
 package oraclefeeder.utils.constants.message;
 
-/**
- * Created by Alberto Pascual on 10/06/15.
- */
 public class Error {
     public static final String ERROR_TRY_RECONNECT = "Error trying to reconnect after Reconnect timeout expired : ";
     public static final String ERROR_CONNECT = "Failed to connect: ";
