@@ -7,9 +7,6 @@ import oraclefeeder.sender.Sender;
 
 import java.util.List;
 
-/**
- * Created by Alberto Pascual on 24/08/15.
- */
 public class MetricsCollector implements Runnable {
 
     private final Capturer capturer;

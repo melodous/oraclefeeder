@@ -1,16 +1,10 @@
 package oraclefeeder.core.domain;
 
-/**
- * Created by Alberto Pascual on 21/09/15.
- */
 public class CacheColumn {
 
     private String name;
     private String value;
     private String type;
-
-    public CacheColumn() {
-    }
 
     public CacheColumn(String name, String value) {
         this.name = name;
@@ -37,7 +31,4 @@ public class CacheColumn {
         return value;
     }
 
-    public void setValue(String value) {
-        this.value = value;
-    }
 }

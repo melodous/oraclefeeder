@@ -2,9 +2,6 @@ package oraclefeeder.core.domain;
 
 import java.util.List;
 
-/**
- * Created by Alberto Pascual on 21/09/15.
- */
 public class CacheResult {
 
     private String instacesFrom;

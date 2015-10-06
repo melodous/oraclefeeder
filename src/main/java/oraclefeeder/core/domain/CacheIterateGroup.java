@@ -5,9 +5,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by Alberto Pascual on 27/08/15.
- */
 public class CacheIterateGroup {
 
     private Integer id;
@@ -46,10 +43,6 @@ public class CacheIterateGroup {
 
     public Map<String, CacheResult> getCacheResult() {
         return cacheResult;
-    }
-
-    public void setCacheResult(Map<String, CacheResult> cacheResult) {
-        this.cacheResult = cacheResult;
     }
 
     public List<CacheResult> getCacheResultList() {
