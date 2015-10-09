@@ -69,6 +69,9 @@ public class ThreadManager implements Runnable {
                 e.printStackTrace();
             }
             long elapsed = (System.currentTimeMillis() - start_time);
+            if(this.fristIteration) {
+                this.fristIteration = false;
+            }
             try {
                 Thread.sleep(Utils.calculateNextIteration(elapsed));
             } catch (InterruptedException e) {
@@ -82,10 +85,11 @@ public class ThreadManager implements Runnable {
         if(this.fristIteration){
             while(true){
                 if(this.threadCacheResult.isRunning() != null && !this.threadCacheResult.isRunning()) {
-                    this.fristIteration = false;
                     int totalResultCached = (Utils.countSingleQuery(this.metrics) + Utils.countIterateQuerys(this.threadCacheResult));
                     this.sender.send(Settings.propertie().getGraphitePrefix() + ".of_stats.metrics.cache.0.number_metrics " + totalResultCached + " " + System.currentTimeMillis() / 1000L + "\n");
-                    //this.showThreadInfo();
+                    if(Settings.propertie().getShowThreadsInfo()){
+                        this.showThreadInfo();
+                    }
                     return this.cacheTime.allocateQuerys(this.metrics);
                 }
             }
@@ -101,17 +105,18 @@ public class ThreadManager implements Runnable {
 
     }
 
-//    private void showThreadInfo(){
-//        Integer maxThreads =  Integer.valueOf(Settings.propertie().getMaxThreads());
-//        int threadNum = 0;
-//        for(Integer numQuerys:Utils.calculateQuerysForThreadReal(this.threadCacheResult, this.metrics, maxThreads)){
-//            threadNum++;
-//            L4j.getL4j().info("############################################");
-//            L4j.getL4j().info("# Thread: OracleFeeder-Thread-"+threadNum);
-//            L4j.getL4j().info("# Number of querys to this thread: " + numQuerys);
-//            L4j.getL4j().info("############################################\n");
-//        }
-//    }
+    private void showThreadInfo(){
+        Integer maxThreads =  Integer.valueOf(Settings.propertie().getMaxThreads());
+        int threadNum = 0;
+        for(Integer numQuerys:Utils.calculateQuerysForThreadReal(this.threadCacheResult, this.metrics, maxThreads)){
+            threadNum++;
+            L4j.getL4j().info("############################################");
+            L4j.getL4j().info("# Threading info");
+            L4j.getL4j().info("# Worker: "+ threadNum);
+            L4j.getL4j().info("# Number of queries to this thread: " + numQuerys);
+            L4j.getL4j().info("############################################\n");
+        }
+    }
 
     private void launchThreads(Map<Integer,List<CacheIterateGroup>> launchThreadsCache) throws SQLException {
         this.checkConnection();
@@ -120,7 +125,7 @@ public class ThreadManager implements Runnable {
         int threadNum = 0;
         for(Map.Entry<Integer,List<CacheIterateGroup>> mapCache: launchThreadsCache.entrySet()){
             threadNum++;
-            Capturer capturer = new Capturer(mapCache.getValue(), this.metrics, this.connection);
+            Capturer capturer = new Capturer(mapCache.getValue(), this.metrics, this.connection, this.fristIteration);
             Runnable worker = new MetricsCollector(capturer, this.sender, threadNum);
             executor.execute(worker);
         }
@@ -138,7 +143,7 @@ public class ThreadManager implements Runnable {
                 waitToThreads = false;
             }
             if(elapsed == Settings.propertie().getThreadsIntervalSec() && oneTime){
-                L4j.getL4j().critical("The threads are taking too");
+                L4j.getL4j().critical("The time elapsed by thread is more than: " + Settings.propertie().getThreadsIntervalSec());
                 oneTime = false;
             }
         }

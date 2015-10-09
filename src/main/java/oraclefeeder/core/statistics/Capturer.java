@@ -22,12 +22,14 @@ public class Capturer {
     private List<CacheIterateGroup> cacheIterateGroups;
     private List<Metric> metrics;
     private Connection connection;
+    private Boolean fristIteration;
 
 
-    public Capturer(List<CacheIterateGroup> cacheIterateGroups, List<Metric> metrics, Connection connection) {
+    public Capturer(List<CacheIterateGroup> cacheIterateGroups, List<Metric> metrics, Connection connection, Boolean fristIteration) {
         this.cacheIterateGroups = cacheIterateGroups;
         this.metrics = metrics;
         this.connection = connection;
+        this.fristIteration = fristIteration;
     }
 
     public List<Statistic> getMetrics(){
@@ -55,7 +57,7 @@ public class Capturer {
                                 }
                             }
                         }
-                        DynamicSelect dynamicSelect = new DynamicSelect(this.connection);
+                        DynamicSelect dynamicSelect = new DynamicSelect(this.connection, this.fristIteration);
                         dynamicSelect.preparedStatement(query.getStatement(), arguments, argumentsIN);
                         ResultSet queryResultSet = dynamicSelect.executeQuery();
                         statistics.addAll(this.getAllMetrics(queryResultSet, query, cacheResult, cacheIterateGroup));

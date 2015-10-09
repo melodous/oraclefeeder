@@ -28,7 +28,7 @@ public class CacheTime implements Runnable {
     private Map<Integer,Metric> metrics;
     private Connection connection;
     private ThreadCacheResult threadCacheResult;
-    private Boolean test;
+    private Boolean fristIteration;
     private Sender sender;
 
     public CacheTime(Connection connection, ThreadCacheResult threadCacheResult, Sender sender) {
@@ -36,6 +36,7 @@ public class CacheTime implements Runnable {
         this.connection = connection;
         this.threadCacheResult = threadCacheResult;
         this.sender = sender;
+        this.fristIteration = true;
     }
 
     public void put(Integer id, Metric metric){
@@ -43,7 +44,7 @@ public class CacheTime implements Runnable {
     }
 
     public void run(){
-        this.test = true;
+
         this.threadCacheResult.isRunning(true);
         Boolean start = true;
 
@@ -63,7 +64,7 @@ public class CacheTime implements Runnable {
                 if(metric.getInstanceFrom() != null) {
                     isInstanceFromInConf = true;
                 }
-                StaticSelect staticSelect = new StaticSelect(this.connection);
+                StaticSelect staticSelect = new StaticSelect(this.connection, fristIteration);
                 ResultSet resultSet = staticSelect.executeQuery(metric.getStatement());
                 if(resultSet != null) {
                     if(resultSet != null) {
@@ -109,9 +110,11 @@ public class CacheTime implements Runnable {
                     this.threadCacheResult.add(cacheIterateGroup);
                     staticSelect.close();
                 }
+                if(this.fristIteration) {
+                    this.fristIteration = false;
+                }
             }
             try {
-                this.test = false;
                 this.threadCacheResult.isRunning(false);
                 long cacheIn = (System.currentTimeMillis() - start_time);
                 this.sender.send(Settings.propertie().getGraphitePrefix() + ".of_stats..metrics.cache.0.retrieve_time " + cacheIn + " " + System.currentTimeMillis() / 1000L + "\n");

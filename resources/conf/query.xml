@@ -6,6 +6,7 @@
             select target_name, target_type, target_guid, metric_name, metric_column, COLLECTION_TIMESTAMP, value
             from mgmt$metric_current
             where target_name = ?
+            and collection_timestamp > sysdate-1/24
             and metric_column IN
         </Statement>
         <Result>

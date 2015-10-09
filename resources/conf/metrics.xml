@@ -6,7 +6,7 @@
         <!--</QueryFile>-->
         <IterateGroups>
             <IterateGroup id="1">
-                <Prefix>prefijoIterate</Prefix>
+                <Prefix>pre_tst_bddb</Prefix>
                 <!--<MapPrefixSuffix>-->
                     <!--<From>host_name</From>-->
                     <!--<File>/opt/orafeeder/hostname.map</File>-->
@@ -58,7 +58,7 @@
                             <!--<Parameter argument="IN">iombs_ps</Parameter>-->
                         <!--</Parameters>-->
                     <!--</Query>-->
-                    <Query id="default" name="uno">
+                    <Query id="default" name="grupo-uno">
                         <Parameters>
                             <!--type column/literal - default literal-->
                             <Parameter type="column">target_name</Parameter>
@@ -72,7 +72,7 @@
                             <Parameter argument="IN">avg_active_sessions</Parameter>
                         </Parameters>
                     </Query>
-                    <Query id="default" name="dos">
+                    <Query id="default" name="grupo-dos">
                         <Parameters>
                             <!--type column/literal - default literal-->
                             <Parameter type="column">target_name</Parameter>

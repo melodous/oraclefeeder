@@ -32,6 +32,7 @@ public class Settings {
     private String metricSeparator;
     private Boolean showQueriesInterval;
     private Long intervalQueriesFilter;
+    private Boolean showThreadsInfo;
 
     private Settings(){}
 
@@ -64,6 +65,7 @@ public class Settings {
             instance.setMetricSeparator(confProperties.getProperty("of_metric_separator"));
             instance.setShowQueriesInterval(Boolean.valueOf(confProperties.getProperty("of_show_queries_interval_info")));
             instance.setIntervalQueriesFilter(Long.valueOf(confProperties.getProperty("of_show_queries_interval_over_sec")));
+            instance.setShowThreadsInfo(Boolean.valueOf(confProperties.getProperty("of_show_threads_info")));
             fileProperties.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -286,5 +288,13 @@ public class Settings {
 
     public void setIntervalQueriesFilter(Long intervalQueriesFilter) {
         this.intervalQueriesFilter = intervalQueriesFilter;
+    }
+
+    public Boolean getShowThreadsInfo() {
+        return showThreadsInfo;
+    }
+
+    public void setShowThreadsInfo(Boolean showThreadsInfo) {
+        this.showThreadsInfo = showThreadsInfo;
     }
 }

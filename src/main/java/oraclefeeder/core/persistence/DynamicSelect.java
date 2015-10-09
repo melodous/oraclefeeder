@@ -14,10 +14,13 @@ public class DynamicSelect {
     private Connection connection;
     private PreparedStatement preparedStatement;
     private boolean isPrepared;
+    private Boolean fristIteration;
+    private String selecteInfo;
 
-    public DynamicSelect(Connection connection) {
+    public DynamicSelect(Connection connection, Boolean fristIteration) {
         this.connection = connection;
         this.isPrepared = false;
+        this.fristIteration = fristIteration;
     }
 
     public void preparedStatement(String select, List<String> arguments, List<String> parametersIN) {
@@ -29,12 +32,22 @@ public class DynamicSelect {
                 }
                 arguments.addAll(parametersIN);
                 select = select + " (" + selectIN.deleteCharAt(selectIN.length()-1) + ")";
+                if(this.fristIteration) {
+                    this.selecteInfo = select;
+                }
             }
             this.preparedStatement = this.connection.prepareStatement(select, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
             int numberArgument = 1;
             for(String argument:arguments){
+                if(this.fristIteration) {
+                    this.selecteInfo = this.selecteInfo.replaceFirst("\\?", argument);
+                }
                 this.preparedStatement.setString(numberArgument++, argument);
             }
+            if(this.fristIteration) {
+                L4j.getL4j().debug("Worker " + Thread.currentThread().getName() + " QUERY: " + this.selecteInfo);
+            }
+
         } catch (SQLException e) {
             e.printStackTrace();
         }

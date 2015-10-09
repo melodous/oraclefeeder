@@ -16,7 +16,7 @@ public class L4j {
         ConsoleAppender console = new ConsoleAppender();
         console.setName(Settings.propertie().getAppName());
         console.setLayout(new PatternLayout(Settings.propertie().getL4jPattern()));
-        console.setThreshold(Level.INFO);
+        console.setThreshold(Level.DEBUG);
         console.activateOptions();
         Logger.getRootLogger().addAppender(console);
         log = Logger.getLogger(Settings.propertie().getL4jGetLogger());
